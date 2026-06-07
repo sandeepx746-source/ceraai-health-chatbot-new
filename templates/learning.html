@@ -1,3 +1,536 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+body{
+    background:#f5f8fc;
+}
+
+body .navbar{
+    position:fixed !important;
+    top:0;
+    left:0;
+    right:0;
+    z-index:9999;
+    background:white !important;
+    box-shadow:0 8px 25px rgba(15,23,42,.06);
+}
+
+.learning-dashboard{
+    min-height:100vh;
+    padding:115px 30px 80px;
+    background:
+        radial-gradient(circle at 18% 12%, rgba(20,184,166,.12), transparent 30%),
+        radial-gradient(circle at 82% 15%, rgba(37,99,235,.12), transparent 32%),
+        #f5f8fc;
+
+    opacity:0;
+    transform:translateY(24px) scale(.98);
+}
+
+.learning-dashboard.page-ready{
+    animation:learningPageOpen .75s ease forwards;
+}
+
+.dashboard-shell{
+    max-width:1280px;
+    margin:auto;
+}
+
+.dashboard-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:20px;
+    margin-bottom:24px;
+}
+
+.dashboard-title span{
+    display:inline-flex;
+    padding:8px 14px;
+    border-radius:999px;
+    background:#ecfeff;
+    color:#0f766e;
+    font-weight:900;
+    margin-bottom:10px;
+    opacity:0;
+    animation:fadeDrop .55s ease forwards .15s;
+}
+
+.dashboard-title h1{
+    margin:0;
+    font-size:42px;
+    font-weight:950;
+    color:#0f172a;
+    opacity:0;
+    animation:fadeDrop .65s ease forwards .28s;
+}
+
+.dashboard-title p{
+    margin:8px 0 0;
+    color:#64748b;
+    font-weight:700;
+    opacity:0;
+    animation:fadeDrop .65s ease forwards .42s;
+}
+
+.search-panel{
+    width:440px;
+    background:white;
+    border:1px solid #e2e8f0;
+    border-radius:22px;
+    padding:8px;
+    display:flex;
+    gap:8px;
+    box-shadow:0 18px 50px rgba(15,23,42,.08);
+    opacity:0;
+    transform:translateY(26px);
+    animation:cardReveal .65s ease forwards .55s;
+}
+
+.search-panel input{
+    flex:1;
+    border:none;
+    outline:none;
+    padding:0 14px;
+    font-weight:800;
+    color:#0f172a;
+    background:transparent;
+}
+
+.search-panel button{
+    border:none;
+    border-radius:16px;
+    padding:14px 20px;
+    color:white;
+    font-weight:950;
+    background:linear-gradient(135deg,#14b8a6,#2563eb);
+}
+
+.visual-stage{
+    display:none;
+}
+
+.visual-stage.show{
+    display:block;
+    animation:cardReveal .6s ease forwards;
+}
+
+.loading-box{
+    background:white;
+    padding:34px;
+    border-radius:26px;
+    text-align:center;
+    font-size:20px;
+    font-weight:950;
+    color:#2563eb;
+    box-shadow:0 25px 70px rgba(15,23,42,.08);
+}
+
+.pro-dashboard{
+    display:grid;
+    grid-template-columns:230px 1fr 320px;
+    gap:20px;
+    align-items:stretch;
+}
+
+.side-panel,
+.video-panel-card,
+.tutor-panel,
+.module-detail-card{
+    background:white;
+    border:1px solid #e6edf6;
+    border-radius:28px;
+    box-shadow:0 22px 65px rgba(15,23,42,.08);
+    opacity:0;
+    transform:translateY(22px);
+    animation:cardReveal .6s ease forwards;
+}
+
+.side-panel{
+    padding:18px;
+    animation-delay:.15s;
+}
+
+.video-panel-card{
+    padding:20px;
+    animation-delay:.25s;
+}
+
+.tutor-panel{
+    animation-delay:.35s;
+}
+
+.module-detail-card{
+    animation-delay:.45s;
+}
+
+.side-logo{
+    width:54px;
+    height:54px;
+    border-radius:18px;
+    display:grid;
+    place-items:center;
+    font-size:25px;
+    background:linear-gradient(135deg,#14b8a6,#2563eb);
+    color:white;
+    margin-bottom:16px;
+}
+
+.side-panel h3{
+    font-size:18px;
+    font-weight:950;
+    color:#0f172a;
+    margin-bottom:14px;
+}
+
+.module-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.module-item{
+    width:100%;
+    padding:13px 14px;
+    border-radius:16px;
+    background:#f8fafc;
+    color:#334155;
+    font-weight:900;
+    border:1px solid #e2e8f0;
+    cursor:pointer;
+    text-align:left;
+    transition:.25s ease;
+}
+
+.module-item:hover{
+    transform:translateX(3px);
+    background:#f1f9ff;
+}
+
+.module-item.active{
+    background:#ecfeff;
+    color:#0f766e;
+    border-color:#99f6e4;
+}
+
+.side-stat{
+    margin-top:18px;
+    padding:16px;
+    border-radius:20px;
+    background:#0f172a;
+    color:white;
+}
+
+.side-stat b{
+    display:block;
+    font-size:24px;
+}
+
+.side-stat span{
+    color:#cbd5e1;
+    font-size:13px;
+}
+
+.center-stack{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.lesson-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.lesson-header h2{
+    margin:0;
+    font-size:30px;
+    font-weight:950;
+    color:#0f172a;
+}
+
+.lesson-header p{
+    margin:5px 0 0;
+    color:#64748b;
+    font-weight:700;
+}
+
+.lesson-status{
+    padding:9px 13px;
+    border-radius:999px;
+    background:#f0fdf4;
+    color:#047857;
+    font-weight:950;
+    white-space:nowrap;
+}
+
+.video-screen{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9;
+    border-radius:24px;
+    overflow:hidden;
+    background:#020617;
+    box-shadow:0 25px 60px rgba(2,6,23,.22);
+}
+
+.video-screen iframe{
+    width:100%;
+    height:100%;
+    border:0;
+}
+
+.video-thumb{
+    width:100%;
+    height:100%;
+    cursor:pointer;
+    position:relative;
+}
+
+.video-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:brightness(.72) saturate(1.05);
+}
+
+.video-gradient{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(to top,rgba(2,6,23,.95),transparent 60%);
+}
+
+.play-btn{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:82px;
+    height:82px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#ef4444,#dc2626);
+    color:white;
+    display:grid;
+    place-items:center;
+    font-size:32px;
+    box-shadow:0 22px 55px rgba(220,38,38,.38);
+}
+
+.video-info{
+    position:absolute;
+    left:22px;
+    right:22px;
+    bottom:20px;
+    color:white;
+}
+
+.video-info span{
+    display:inline-flex;
+    padding:7px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.18);
+    font-size:12px;
+    font-weight:950;
+    margin-bottom:9px;
+}
+
+.video-info h3{
+    margin:0;
+    font-size:20px;
+    font-weight:950;
+    line-height:1.35;
+}
+
+.video-error{
+    height:100%;
+    display:grid;
+    place-items:center;
+    color:#fecaca;
+    font-weight:950;
+    text-align:center;
+    padding:24px;
+}
+
+.module-detail-card{
+    padding:28px;
+    min-height:250px;
+}
+
+.detail-top{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:18px;
+}
+
+.detail-icon{
+    width:58px;
+    height:58px;
+    border-radius:18px;
+    background:#f1f9ff;
+    display:grid;
+    place-items:center;
+    font-size:29px;
+}
+
+.module-detail-card h3{
+    margin:0;
+    font-size:28px;
+    font-weight:950;
+    color:#0f172a;
+}
+
+.module-detail-card p{
+    margin:0;
+    color:#334155;
+    font-size:18px;
+    line-height:1.9;
+    font-weight:700;
+    letter-spacing:.1px;
+}
+
+.tutor-panel{
+    padding:22px;
+    background:linear-gradient(180deg,#0f172a,#1e293b);
+    color:white;
+    position:relative;
+    overflow:hidden;
+}
+
+.tutor-panel::before{
+    content:"";
+    width:190px;
+    height:190px;
+    border-radius:50%;
+    background:rgba(20,184,166,.22);
+    filter:blur(18px);
+    position:absolute;
+    right:-70px;
+    top:-50px;
+}
+
+.tutor-icon{
+    width:58px;
+    height:58px;
+    border-radius:18px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,#14b8a6,#2563eb);
+    font-size:26px;
+    position:relative;
+}
+
+.tutor-panel h3{
+    position:relative;
+    font-size:24px;
+    font-weight:950;
+    margin:16px 0 12px;
+}
+
+.tutor-panel p{
+    position:relative;
+    color:#dbeafe;
+    line-height:1.75;
+    font-weight:700;
+    font-size:15px;
+}
+
+.speak-btn{
+    position:relative;
+    margin-top:12px;
+    border:none;
+    padding:13px 16px;
+    border-radius:15px;
+    background:white;
+    color:#0f172a;
+    font-weight:950;
+}
+
+@keyframes learningPageOpen{
+    to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+
+@keyframes cardReveal{
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@keyframes fadeDrop{
+    from{
+        opacity:0;
+        transform:translateY(-18px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@media(max-width:1100px){
+    .pro-dashboard{
+        grid-template-columns:1fr;
+    }
+
+    .search-panel{
+        width:100%;
+    }
+
+    .dashboard-top{
+        flex-direction:column;
+        align-items:stretch;
+    }
+}
+
+@media(max-width:700px){
+    .learning-dashboard{
+        padding:105px 14px 70px;
+    }
+
+    .dashboard-title h1{
+        font-size:31px;
+    }
+
+    .search-panel{
+        flex-direction:column;
+    }
+
+    .search-panel input{
+        min-height:48px;
+    }
+}
+</style>
+
+<div class="learning-dashboard">
+    <div class="dashboard-shell">
+
+        <div class="dashboard-top">
+            <div class="dashboard-title">
+                <span>🧠 Professional Medical Learning</span>
+                <h1>CeraAI Learning Dashboard</h1>
+                <p>Video lesson, AI tutor explanation, and structured medical notes in one workspace.</p>
+            </div>
+
+            <div class="search-panel">
+                <input id="diseaseInput" placeholder="Search disease... Dengue, Diabetes, Asthma">
+                <button onclick="startLearning()">Analyze</button>
+            </div>
+        </div>
+
+        <div id="visualStage" class="visual-stage"></div>
+
+    </div>
+</div>
+
 <script>
 window.addEventListener("load", () => {
     document.querySelector(".learning-dashboard")?.classList.add("page-ready");
@@ -21,27 +554,6 @@ function escapeHtml(text){
     const div = document.createElement("div");
     div.innerText = text || "";
     return div.innerHTML;
-}
-
-function isGoodMedicalVideo(title){
-    const t = String(title || "").toLowerCase();
-
-    const blocked = [
-        "kids", "kid", "children", "baby", "mom", "hack",
-        "shorts", "#shorts", "tiktok", "reel", "vlog"
-    ];
-
-    const preferred = [
-        "animation", "animated", "3d", "anatomy",
-        "medical", "patient education", "explained",
-        "osmosis", "nucleus", "pathophysiology"
-    ];
-
-    if(blocked.some(word => t.includes(word))){
-        return false;
-    }
-
-    return preferred.some(word => t.includes(word));
 }
 
 function playVideo(videoId){
@@ -117,7 +629,7 @@ async function startLearning(){
 
         let videoHtml = `
             <div class="video-screen">
-                <div class="video-error">🎥 Searching professional medical animation...</div>
+                <div class="video-error">🎥 Searching professional medical video...</div>
             </div>
         `;
 
@@ -125,18 +637,12 @@ async function startLearning(){
             const videoResponse = await fetch("/api/learning-video", {
                 method:"POST",
                 headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({
-                    disease: `${data.disease || disease} medical animation 3D anatomy pathophysiology`
-                })
+                body:JSON.stringify({ disease:data.disease || disease })
             });
 
             const videoData = await videoResponse.json();
 
             if(videoData.success){
-                const videoLabel = isGoodMedicalVideo(videoData.title)
-                    ? "Professional Medical Animation"
-                    : "Medical Learning Video";
-
                 videoHtml = `
                     <div id="videoPlayerBox">
                         <div class="video-screen">
@@ -145,7 +651,7 @@ async function startLearning(){
                                 <div class="video-gradient"></div>
                                 <div class="play-btn">▶</div>
                                 <div class="video-info">
-                                    <span>${videoLabel}</span>
+                                    <span>Professional Video Lesson</span>
                                     <h3>${escapeHtml(videoData.title)}</h3>
                                 </div>
                             </div>
@@ -234,3 +740,5 @@ async function startLearning(){
     }
 }
 </script>
+
+{% endblock %}
