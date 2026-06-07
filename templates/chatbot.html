@@ -1508,21 +1508,14 @@ function startCeraVoiceOnly() {
 
 async function sendCeraVoiceQuestion(text) {
     try {
-        const lang = detectUserLanguage(text);
-
-        const conversationId = document.getElementById("current-conversation-id").value;
-
-const response = await fetch("/api/chat", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "X-Requested-With": "XMLHttpRequest"
-    },
-    body: JSON.stringify({
-        message: message,
-        conversation_id: conversationId || null
-    })
-});
+        const response = await fetch(window.location.pathname, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify({ message: text })
+        });
 
         const data = await response.json();
 
@@ -1535,16 +1528,13 @@ const response = await fetch("/api/chat", {
 
         voiceConversation.push({ sender: "ai", text: reply });
         renderVoiceConversation();
-
         speakCeraVoice(reply);
 
     } catch (error) {
-        console.error(error);
-
+        console.error("VOICE FRONTEND ERROR:", error);
         const errorReply = "Sorry, server error. Please try again.";
         voiceConversation.push({ sender: "ai", text: errorReply });
         renderVoiceConversation();
-
         speakCeraVoice(errorReply);
     }
 }
@@ -1725,6 +1715,9 @@ async function loadHealthNews() {
         console.error("News error:", error);
         newsContainer.innerHTML = "<p>⚠️ Live news failed</p>";
     }
+}
+if (data.conversation_id) {
+    document.getElementById("current-conversation-id").value = data.conversation_id;
 }
 async function typeBotLineByLine(botBubble, text) {
     const chatBox = document.getElementById("chat-messages");
