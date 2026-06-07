@@ -38,14 +38,8 @@ User: {user_message}
     payload = {
         "model": "llama-3.3-70b-versatile",
         "messages": [
-            {
-                "role": "system",
-                "content": "You are CeraAI. Respond naturally like a real doctor."
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }
+            {"role": "system", "content": "You are CeraAI. Respond naturally like a real doctor."},
+            {"role": "user", "content": prompt}
         ],
         "temperature": 0.7,
         "max_tokens": 140
@@ -64,7 +58,6 @@ User: {user_message}
 
     try:
         context = ssl._create_unverified_context()
-
         with urllib.request.urlopen(req, timeout=25, context=context) as response:
             result = json.loads(response.read().decode("utf-8"))
             return result["choices"][0]["message"]["content"]
@@ -90,7 +83,6 @@ def home():
 @views_bp.route('/chatbot/<int:conversation_id>', methods=['GET', 'POST'])
 @login_required
 def chatbot(conversation_id=None):
-
     if request.method == 'POST':
         data = request.get_json()
         user_message = data.get('message', '').strip()
@@ -164,24 +156,28 @@ def learn_disease():
         })
 
     prompt = f"""
-Explain this health topic like professional medical visual learning: {disease}
+Explain this health topic like a professional medical learning dashboard: {disease}
 
 Return ONLY valid JSON. No markdown. No extra text.
 
-Use simple, clear, student-friendly medical language.
-Each field must be 2 to 3 clear sentences.
-Do not give scary or emergency-only wording unless it is medically necessary.
+Use simple, clean, student-friendly medical language.
+Keep the content minimal, professional, and easy to scan.
+Each field must be ONLY 1 short sentence.
+Maximum 18 words per field.
+visual_story must be maximum 2 short professional sentences.
+Avoid long paragraphs.
+Do not give scary or emergency-only wording unless medically necessary.
 
 JSON format:
 {{
   "disease": "{disease}",
-  "cause": "explain the cause clearly in 2-3 simple sentences",
-  "body_effect": "explain how it affects the body in 2-3 simple sentences",
-  "symptoms": "explain main symptoms clearly in 2-3 simple sentences",
-  "diagnosis": "explain how doctors identify it in 2-3 simple sentences",
-  "treatment": "explain basic treatment approach in 2-3 simple sentences",
-  "prevention": "explain prevention clearly in 2-3 simple sentences",
-  "visual_story": "short professional medical visual explanation for students in 3-4 simple sentences"
+  "cause": "1 short professional sentence about cause",
+  "body_effect": "1 short professional sentence about body effect",
+  "symptoms": "1 short professional sentence about symptoms",
+  "diagnosis": "1 short professional sentence about diagnosis",
+  "treatment": "1 short professional sentence about treatment",
+  "prevention": "1 short professional sentence about prevention",
+  "visual_story": "maximum 2 short professional sentences"
 }}
 """
 
@@ -190,15 +186,15 @@ JSON format:
         "messages": [
             {
                 "role": "system",
-                "content": "You are CeraAI Learning Teacher. Explain like a professional medical educator. Return only valid JSON."
+                "content": "You are CeraAI Learning Teacher. Return only valid JSON with short professional medical content."
             },
             {
                 "role": "user",
                 "content": prompt
             }
         ],
-        "temperature": 0.45,
-        "max_tokens": 950
+        "temperature": 0.35,
+        "max_tokens": 500
     }
 
     req = urllib.request.Request(
@@ -299,7 +295,8 @@ def learning_video():
         preferred_words = [
             "animation", "animated", "3d", "anatomy",
             "medical", "patient education", "explained",
-            "pathophysiology", "thermoregulation", "fever"
+            "pathophysiology", "thermoregulation", "fever",
+            "osmosis", "nucleus", "mechanism"
         ]
 
         clean_items = []
@@ -315,10 +312,7 @@ def learning_video():
             if any(word in text for word in preferred_words):
                 clean_items.append(item)
 
-        if clean_items:
-            item = clean_items[0]
-        else:
-            item = items[0]
+        item = clean_items[0] if clean_items else items[0]
 
         video_id = item["id"]["videoId"]
         title = item["snippet"]["title"]
