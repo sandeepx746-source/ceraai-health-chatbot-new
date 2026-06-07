@@ -261,16 +261,27 @@ def learning_video():
     try:
         youtube = build("youtube", "v3", developerKey=api_key)
 
+        disease_lower = disease.lower()
+
+        video_query = f"{disease} medical animation 3D anatomy patient education"
+
+        if "fever" in disease_lower or "temperature" in disease_lower:
+            video_query = "fever pathophysiology medical animation thermoregulation patient education"
+
         search_response = youtube.search().list(
-            q=f"{disease} health education medical explanation",
+            q=video_query,
             part="snippet",
-            maxResults=10,
+            maxResults=15,
             type="video",
-            safeSearch="moderate"
+            safeSearch="strict",
+            videoEmbeddable="true",
+            videoSyndicated="true",
+            relevanceLanguage="en"
         ).execute()
 
         items = search_response.get("items", [])
 
+        print("YOUTUBE QUERY:", video_query)
         print("YOUTUBE ITEMS COUNT:", len(items))
 
         if not items:
@@ -279,11 +290,42 @@ def learning_video():
                 "error": "No YouTube result found"
             })
 
-        item = items[0]
+        blocked_words = [
+            "kids", "kid", "children", "baby", "mom", "hack",
+            "shorts", "#shorts", "tiktok", "reel", "vlog",
+            "funny", "home remedy"
+        ]
+
+        preferred_words = [
+            "animation", "animated", "3d", "anatomy",
+            "medical", "patient education", "explained",
+            "pathophysiology", "thermoregulation", "fever"
+        ]
+
+        clean_items = []
+
+        for item in items:
+            title = item["snippet"]["title"].lower()
+            desc = item["snippet"].get("description", "").lower()
+            text = title + " " + desc
+
+            if any(word in text for word in blocked_words):
+                continue
+
+            if any(word in text for word in preferred_words):
+                clean_items.append(item)
+
+        if clean_items:
+            item = clean_items[0]
+        else:
+            item = items[0]
 
         video_id = item["id"]["videoId"]
         title = item["snippet"]["title"]
-        thumbnail = item["snippet"]["thumbnails"].get("high", item["snippet"]["thumbnails"]["default"])["url"]
+        thumbnail = item["snippet"]["thumbnails"].get(
+            "high",
+            item["snippet"]["thumbnails"]["default"]
+        )["url"]
 
         return jsonify({
             "success": True,
