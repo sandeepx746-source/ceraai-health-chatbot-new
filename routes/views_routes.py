@@ -334,4 +334,4 @@ def learning_video():
         return jsonify({
             "success": False,
             "error": str(e)
-        })
+        }) 
