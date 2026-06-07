@@ -261,93 +261,29 @@ def learning_video():
     try:
         youtube = build("youtube", "v3", developerKey=api_key)
 
-        search_request = youtube.search().list(
-            q=f"{disease} 3D medical animation patient education anatomy",
+        search_response = youtube.search().list(
+            q=f"{disease} health education medical explanation",
             part="snippet",
-            maxResults=8,
+            maxResults=10,
             type="video",
-            safeSearch="strict",
-            videoEmbeddable="true",
-            videoSyndicated="true",
-            videoDuration="medium",
-            videoDefinition="high",
-            relevanceLanguage="en"
-        )
+            safeSearch="moderate"
+        ).execute()
 
-        search_response = search_request.execute()
         items = search_response.get("items", [])
+
+        print("YOUTUBE ITEMS COUNT:", len(items))
 
         if not items:
             return jsonify({
                 "success": False,
-                "error": "Video not found"
+                "error": "No YouTube result found"
             })
 
-        blocked_words = [
-            "kids",
-            "kid",
-            "children",
-            "cartoon",
-            "peekaboo",
-            "dr binocs",
-            "nursery",
-            "rhymes",
-            "for kids",
-            "baby",
-            "school kids",
-            "kindergarten"
-        ]
-
-        preferred_words = [
-            "medical",
-            "animation",
-            "3d",
-            "anatomy",
-            "patient",
-            "education",
-            "health",
-            "clinical",
-            "nucleus",
-            "osmosis"
-        ]
-
-        filtered_items = []
-
-        for item in items:
-            title = item["snippet"]["title"].lower()
-            description = item["snippet"].get("description", "").lower()
-            text = title + " " + description
-
-            has_blocked = any(word in text for word in blocked_words)
-            has_preferred = any(word in text for word in preferred_words)
-
-            if not has_blocked and has_preferred:
-                filtered_items.append(item)
-
-        if filtered_items:
-            item = filtered_items[0]
-        else:
-            clean_items = []
-
-            for item in items:
-                title = item["snippet"]["title"].lower()
-                description = item["snippet"].get("description", "").lower()
-                text = title + " " + description
-
-                if not any(word in text for word in blocked_words):
-                    clean_items.append(item)
-
-            if not clean_items:
-                return jsonify({
-                    "success": False,
-                    "error": "Professional video not found"
-                })
-
-            item = clean_items[0]
+        item = items[0]
 
         video_id = item["id"]["videoId"]
         title = item["snippet"]["title"]
-        thumbnail = item["snippet"]["thumbnails"]["high"]["url"]
+        thumbnail = item["snippet"]["thumbnails"].get("high", item["snippet"]["thumbnails"]["default"])["url"]
 
         return jsonify({
             "success": True,
@@ -361,5 +297,5 @@ def learning_video():
         print("YouTube Video Error:", e)
         return jsonify({
             "success": False,
-            "error": "Video search failed"
+            "error": str(e)
         })
